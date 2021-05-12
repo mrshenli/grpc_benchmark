@@ -1,4 +1,15 @@
-from common import identity, identity_script, heavy, heavy_script
+from common import (
+    identity,
+    identity_script,
+    heavy,
+    heavy_script,
+    identity_cuda,
+    identity_script_cuda,
+    heavy_cuda,
+    heavy_script_cuda,
+    stamp_time,
+    compute_delay,
+)
 
 from torch.distributed import rpc
 from functools import partial
@@ -9,21 +20,6 @@ import time
 import os
 
 NUM_RPC = 10
-
-def stamp_time(cuda=False):
-    if cuda:
-        event = torch.cuda.Event(enable_timing=True)
-        event.record(torch.cuda.current_stream(0))
-        return event
-    else:
-        return time.time()
-
-
-def compute_delay(ts, cuda=False):
-    if cuda:
-        return ts["tik"].elapsed_time(ts["tok"]) / 1e3
-    else:
-        return ts["tok"] - ts["tik"]
 
 
 def wait_all(futs, cuda):
@@ -129,7 +125,7 @@ def run():
         # identity cuda
         measure(
             name="identity",
-            func=identity,
+            func=identity_cuda,
             args=(tensor,),
             cuda=True,
         )
@@ -137,7 +133,7 @@ def run():
         # identity script cuda
         measure(
             name="identity_script",
-            func=identity_script,
+            func=identity_script_cuda,
             args=(tensor,),
             cuda=True,
         )
@@ -145,7 +141,7 @@ def run():
         # heavy cuda
         measure(
             name="heavy",
-            func=identity,
+            func=identity_cuda,
             args=(tensor,),
             cuda=True,
         )
@@ -153,7 +149,7 @@ def run():
         # heavy script cuda
         measure(
             name="heavy_script",
-            func=heavy_script,
+            func=heavy_script_cuda,
             args=(tensor,),
             cuda=True,
         )
