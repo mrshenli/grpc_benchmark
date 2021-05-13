@@ -9,6 +9,7 @@ from common import (
     heavy_script_cuda,
     stamp_time,
     compute_delay,
+    NUM_RPC,
 )
 
 from torch.distributed import rpc
@@ -18,8 +19,6 @@ from statistics import stdev
 import torch
 import time
 import os
-
-NUM_RPC = 10
 
 
 def wait_all(futs, cuda):

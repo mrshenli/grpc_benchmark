@@ -23,10 +23,8 @@ from common import (
     heavy_script_cuda,
     stamp_time,
     compute_delay,
+    NUM_RPC,
 )
-
-
-NUM_RPC = 2
 
 
 def get_all_results(futs, cuda):
@@ -39,18 +37,20 @@ def get_all_results(futs, cuda):
 
 class Client:
     def __init__(self, server_address):
-        self.channel = grpc.insecure_channel(server_address)
-        self.stub = benchmark_pb2_grpc.GRPCBenchmarkStub(self.channel)
+        self.stubs = []
+        for _ in range(NUM_RPC):
+            channel = grpc.insecure_channel(server_address)
+            self.stubs.append(benchmark_pb2_grpc.GRPCBenchmarkStub(channel))
 
 
 
-    def measure(self, *, name=None, func=None, args=None, cuda=False):
+    def measure(self, *, name=None, tensor=None, cuda=False):
         # warmup
         futs = []
-        for _ in range(NUM_RPC):
-            data = pickle.dumps((func, args))
+        for i in range(NUM_RPC):
+            data = pickle.dumps((name, tensor, cuda))
             request = benchmark_pb2.Request(data=data)
-            futs.append(self.stub.meta_run.future(request))
+            futs.append(self.stubs[i].meta_run.future(request))
 
         get_all_results(futs, cuda)
 
@@ -79,9 +79,9 @@ class Client:
             timestamps[index] = {}
             timestamps[index]["tik"] = stamp_time(cuda)
 
-            data = pickle.dumps((func, args))
+            data = pickle.dumps((name, tensor, cuda))
             request = benchmark_pb2.Request(data=data)
-            fut = self.stub.meta_run.future(request)
+            fut = self.stubs[index].meta_run.future(request)
             futs.append(fut)
 
             fut.add_done_callback(partial(mark_complete_cpu, index, cuda))
@@ -99,20 +99,73 @@ class Client:
         return mean, stdv
 
     def terminate(self):
-        self.stub.terminate(benchmark_pb2.EmptyMessage())
+        self.stubs[0].terminate(benchmark_pb2.EmptyMessage())
 
 def run():
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     assert torch.cuda.device_count() == 1
 
     client = Client("localhost:29500")
-    tensor = torch.ones(100, 100)
-    # identity
-    client.measure(
-        name="identity",
-        func=identity,
-        args=(tensor,),
-        cuda=False
-    )
+
+    for size in [100, 1000]:
+        print(f"======= size = {size} =====")
+        tensor = torch.ones(size, size)
+        # identity
+        client.measure(
+            name="identity",
+            tensor=tensor,
+            cuda=False
+        )
+
+        # identity_script
+        client.measure(
+            name="identity_script",
+            tensor=tensor,
+            cuda=False
+        )
+
+        # heavy
+        client.measure(
+            name="heavy",
+            tensor=tensor,
+            cuda=False,
+        )
+
+        # heavy script
+        client.measure(
+            name="heavy_script",
+            tensor=tensor,
+            cuda=False,
+        )
+
+        tensor = tensor.to(0)
+        torch.cuda.current_stream(0).synchronize()
+        # identity cuda
+        client.measure(
+            name="identity",
+            tensor=tensor,
+            cuda=True,
+        )
+
+        # identity_script cuda
+        client.measure(
+            name="identity_script",
+            tensor=tensor,
+            cuda=True,
+        )
+
+        # heavy cuda
+        client.measure(
+            name="heavy",
+            tensor=tensor,
+            cuda=True,
+        )
+
+        # heavy_script cuda
+        client.measure(
+            name="heavy_script",
+            tensor=tensor,
+            cuda=True,
+        )
 
     client.terminate()

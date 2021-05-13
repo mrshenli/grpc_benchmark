@@ -6,7 +6,8 @@ import grpc_server
 
 def main():
     ctx = mp.get_context('spawn')
-    """
+
+    print("#######==== PyTorch RPC ===#######")
     targets = [pt_rpc_client.run, pt_rpc_server.run]
     processes = [ctx.Process(target=t) for t in targets]
     for p in processes:
@@ -14,8 +15,8 @@ def main():
 
     for p in processes:
         p.join()
-    """
 
+    print("#######==== gRPC ===#######")
     targets = [grpc_client.run, grpc_server.run]
     processes = [ctx.Process(target=t) for t in targets]
     for p in processes:

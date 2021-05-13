@@ -6,14 +6,42 @@ import torch
 import grpc
 import os
 
+from common import (
+    identity,
+    identity_script,
+    heavy,
+    heavy_script,
+    identity_cuda,
+    identity_script_cuda,
+    heavy_cuda,
+    heavy_script_cuda,
+    stamp_time,
+    compute_delay,
+)
+
+funcs = {
+    "identity" : identity,
+    "identity_script" : identity_script,
+    "heavy" : heavy,
+    "heavy_script" : heavy_script,
+    "identity_cuda" : identity_cuda,
+    "identity_script_cuda" : identity_script_cuda,
+    "heavy_cuda" : heavy_cuda,
+    "heavy_script_cuda" : heavy_script_cuda,
+    "stamp_time" : stamp_time,
+    "compute_delay" : compute_delay,
+}
+
 class Server(benchmark_pb2_grpc.GRPCBenchmarkServicer):
     def __init__(self, server_address):
         self.server_address = server_address
         self.future = futures.Future()
 
     def meta_run(self, request, context):
-        func, args = pickle.loads(request.data)
-        return benchmark_pb2.Response(data=pickle.dumps(func(*args)))
+        name, tensor, cuda = pickle.loads(request.data)
+        if cuda:
+            tensor = tensor.cuda(0)
+        return benchmark_pb2.Response(data=pickle.dumps(funcs[name](tensor)))
 
     def terminate(self, request, context):
         self.future.set_result(0)

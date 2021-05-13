@@ -3,6 +3,10 @@ from torch import Tensor
 from typing import Tuple
 import time
 
+
+NUM_RPC = 50
+
+
 def identity(x: Tensor) -> Tensor:
     return x
 
