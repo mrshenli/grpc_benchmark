@@ -3,8 +3,8 @@ from torch import Tensor
 from typing import Tuple
 import time
 
-
-NUM_RPC = 50
+# there are only 32 streams in the pool, keep this nunber below that.
+NUM_RPC = 10
 
 
 def identity(x: Tensor) -> Tensor:
@@ -68,6 +68,7 @@ def stamp_time(cuda=False):
 
 def compute_delay(ts, cuda=False):
     if cuda:
+        ts["tok"].synchronize()
         return ts["tik"].elapsed_time(ts["tok"]) / 1e3
     else:
         return ts["tok"] - ts["tik"]
