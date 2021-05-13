@@ -24,7 +24,7 @@ import threading
 
 
 
-def measure(*, name=None, func=None, args=None, cuda=False):
+def measure(*, name=None, func=None, args=None, cuda=False, out_file=None):
     # warmup
     futs = []
     for _ in range(NUM_RPC):
@@ -68,8 +68,11 @@ def measure(*, name=None, func=None, args=None, cuda=False):
         delays.append(compute_delay(timestamps[index], cuda))
     mean = sum(delays)/len(delays)
     stdv = stdev(delays)
+    total = end - start
     print(f"{name}_{'cuda' if cuda else 'cpu'}: mean = {mean}, stdev = {stdv}, total = {end - start}", flush=True)
-    return mean, stdv
+    if out_file:
+        out_file.write(f"{name}, {mean}, {stdv}, {total}\n")
+    return mean, stdv, total
 
 
 def run():
@@ -90,15 +93,17 @@ def run():
         rpc_backend_options=options
     )
 
-    for size in [100, 1000]:
+    for size in [100, 1000, 10000]:
         print(f"======= size = {size} =====")
+        f = open(f"logs/single_pt_rpc_{size}.log", "w")
         tensor = torch.ones(size, size)
         # identity
         measure(
             name="identity",
             func=identity,
             args=(tensor,),
-            cuda=False
+            cuda=False,
+            out_file=f,
         )
 
         # identity script
@@ -107,6 +112,7 @@ def run():
             func=identity_script,
             args=(tensor,),
             cuda=False,
+            out_file=f,
         )
 
         # heavy
@@ -115,6 +121,7 @@ def run():
             func=heavy,
             args=(tensor,),
             cuda=False,
+            out_file=f,
         )
 
         # heavy script
@@ -123,6 +130,7 @@ def run():
             func=heavy_script,
             args=(tensor,),
             cuda=False,
+            out_file=f,
         )
 
         tensor = tensor.to(0)
@@ -133,6 +141,7 @@ def run():
             func=identity_cuda,
             args=(tensor,),
             cuda=True,
+            out_file=f,
         )
 
         # identity script cuda
@@ -141,6 +150,7 @@ def run():
             func=identity_script_cuda,
             args=(tensor,),
             cuda=True,
+            out_file=f,
         )
 
         # heavy cuda
@@ -149,6 +159,7 @@ def run():
             func=heavy_cuda,
             args=(tensor,),
             cuda=True,
+            out_file=f,
         )
 
         # heavy script cuda
@@ -157,6 +168,9 @@ def run():
             func=heavy_script_cuda,
             args=(tensor,),
             cuda=True,
+            out_file=f,
         )
+
+        f.close()
 
     rpc.shutdown()

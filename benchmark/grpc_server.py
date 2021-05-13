@@ -32,6 +32,8 @@ funcs = {
     "compute_delay" : compute_delay,
 }
 
+MAX_MESSAGE_LENGTH = 10000 * 10000 * 10
+
 class Server(benchmark_pb2_grpc.GRPCBenchmarkServicer):
     def __init__(self, server_address):
         self.server_address = server_address
@@ -48,7 +50,13 @@ class Server(benchmark_pb2_grpc.GRPCBenchmarkServicer):
         return benchmark_pb2.EmptyMessage()
 
     def run(self):
-        server = grpc.server(futures.ThreadPoolExecutor())
+        server = grpc.server(
+            futures.ThreadPoolExecutor(),
+            options = [
+                ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+                ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)
+            ]
+        )
 
         benchmark_pb2_grpc.add_GRPCBenchmarkServicer_to_server(self, server)
 

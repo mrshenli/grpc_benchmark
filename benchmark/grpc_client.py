@@ -26,6 +26,8 @@ from common import (
     NUM_RPC,
 )
 
+MAX_MESSAGE_LENGTH = 10000 * 10000 * 10
+
 
 def get_all_results(futs, cuda):
     cpu_tensors = [pickle.loads(f.result().data) for f in futs]
@@ -39,12 +41,18 @@ class Client:
     def __init__(self, server_address):
         self.stubs = []
         for _ in range(NUM_RPC):
-            channel = grpc.insecure_channel(server_address)
+            channel = grpc.insecure_channel(
+                server_address,
+                options=[
+                    ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+                    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
+                ]
+            )
             self.stubs.append(benchmark_pb2_grpc.GRPCBenchmarkStub(channel))
 
 
 
-    def measure(self, *, name=None, tensor=None, cuda=False):
+    def measure(self, *, name=None, tensor=None, cuda=False, out_file=None):
         # warmup
         futs = []
         for i in range(NUM_RPC):
@@ -95,8 +103,12 @@ class Client:
 
         mean = sum(delays)/len(delays)
         stdv = stdev(delays)
-        print(f"{name}_{'cuda' if cuda else 'cpu'}: mean = {mean}, stdev = {stdv}, total = {end - start}", flush=True)
-        return mean, stdv
+        total = end - start
+        name = f"{name}_{'cuda' if cuda else 'cpu'}"
+        print(f"{name}: mean = {mean}, stdev = {stdv}, total = {total}", flush=True)
+        if out_file:
+            out_file.write(f"{name}, {mean}, {stdv}, {total}\n")
+        return mean, stdv, total
 
     def terminate(self):
         self.stubs[0].terminate(benchmark_pb2.EmptyMessage())
@@ -107,21 +119,25 @@ def run():
 
     client = Client("localhost:29500")
 
-    for size in [100, 1000]:
+    for size in [100, 1000, 10000]:
         print(f"======= size = {size} =====")
+        f = open(f"logs/single_grpc_{size}.log", "w")
+
         tensor = torch.ones(size, size)
         # identity
         client.measure(
             name="identity",
             tensor=tensor,
-            cuda=False
+            cuda=False,
+            out_file=f,
         )
 
         # identity_script
         client.measure(
             name="identity_script",
             tensor=tensor,
-            cuda=False
+            cuda=False,
+            out_file=f,
         )
 
         # heavy
@@ -129,6 +145,7 @@ def run():
             name="heavy",
             tensor=tensor,
             cuda=False,
+            out_file=f,
         )
 
         # heavy script
@@ -136,6 +153,7 @@ def run():
             name="heavy_script",
             tensor=tensor,
             cuda=False,
+            out_file=f,
         )
 
         tensor = tensor.to(0)
@@ -145,6 +163,7 @@ def run():
             name="identity",
             tensor=tensor,
             cuda=True,
+            out_file=f,
         )
 
         # identity_script cuda
@@ -152,6 +171,7 @@ def run():
             name="identity_script",
             tensor=tensor,
             cuda=True,
+            out_file=f,
         )
 
         # heavy cuda
@@ -159,6 +179,7 @@ def run():
             name="heavy",
             tensor=tensor,
             cuda=True,
+            out_file=f,
         )
 
         # heavy_script cuda
@@ -166,6 +187,9 @@ def run():
             name="heavy_script",
             tensor=tensor,
             cuda=True,
+            out_file=f,
         )
+
+        f.close()
 
     client.terminate()
