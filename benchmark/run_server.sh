@@ -1,2 +1,2 @@
-python multi_machine_launch.py --cluster=aws --role=server --comm=ptrpc
-python multi_machine_launch.py --cluster=aws --role=server --comm=grpc
+python multi_machine_launch.py --role=server --comm=ptrpc
+python multi_machine_launch.py --role=server --comm=grpc

@@ -5,12 +5,12 @@ import torch
 
 import os
 
-def run():
+def run(addr="localhost", port="29500"):
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     assert torch.cuda.device_count() == 1
 
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "29500"
+    os.environ["MASTER_ADDR"] = addr
+    os.environ["MASTER_PORT"] = port
 
     options = rpc.TensorPipeRpcBackendOptions(
             num_worker_threads = 256,

@@ -113,11 +113,11 @@ class Client:
     def terminate(self):
         self.stubs[0].terminate(benchmark_pb2.EmptyMessage())
 
-def run():
+def run(addr="localhost", port="29500"):
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     assert torch.cuda.device_count() == 1
 
-    client = Client("localhost:29500")
+    client = Client(f"{addr}:{port}")
 
     #for size in [100, 1000, 10000]:
     for size in [100, 1000]:

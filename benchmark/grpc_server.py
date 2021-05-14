@@ -64,9 +64,9 @@ class Server(benchmark_pb2_grpc.GRPCBenchmarkServicer):
         server.start()
         self.future.result()
 
-def run():
+def run(addr="localhost", port="29500"):
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     assert torch.cuda.device_count() == 1
 
-    server = Server("localhost:29500")
+    server = Server(f"{addr}:{port}")
     server.run()
