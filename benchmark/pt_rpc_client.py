@@ -93,7 +93,8 @@ def run():
         rpc_backend_options=options
     )
 
-    for size in [100, 1000, 10000]:
+    #for size in [100, 1000, 10000]:
+    for size in [100, 1000]:
         print(f"======= size = {size} =====")
         f = open(f"logs/single_pt_rpc_{size}.log", "w")
         tensor = torch.ones(size, size)

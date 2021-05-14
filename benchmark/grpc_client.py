@@ -119,7 +119,8 @@ def run():
 
     client = Client("localhost:29500")
 
-    for size in [100, 1000, 10000]:
+    #for size in [100, 1000, 10000]:
+    for size in [100, 1000]:
         print(f"======= size = {size} =====")
         f = open(f"logs/single_grpc_{size}.log", "w")
 
