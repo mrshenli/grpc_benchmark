@@ -61,11 +61,14 @@ def measure(*, name=None, func=None, args=None, cuda=False, out_file=None):
     torch.futures.wait_all(futs)
     states["future"].wait()
     #torch.cuda.current_stream(0).synchronize()
-    end = time.time()
 
     delays = []
     for index in range(len(timestamps)):
         delays.append(compute_delay(timestamps[index], cuda))
+
+
+    end = time.time()
+
     mean = sum(delays)/len(delays)
     stdv = stdev(delays)
     total = end - start
@@ -93,11 +96,23 @@ def run(addr="localhost", port="29500"):
         rpc_backend_options=options
     )
 
-    #for size in [100, 1000, 10000]:
-    for size in [100, 1000]:
+    for size in [100, 1000, 10000]:
+    #for size in [100, 1000]:
         print(f"======= size = {size} =====")
         f = open(f"logs/single_pt_rpc_{size}.log", "w")
         tensor = torch.ones(size, size)
+
+        # identity
+        measure(
+            name="identity",
+            func=identity,
+            args=(tensor,),
+            cuda=False,
+            out_file=f,
+        )
+
+
+
         # identity
         measure(
             name="identity",

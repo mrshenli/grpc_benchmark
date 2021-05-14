@@ -95,11 +95,12 @@ class Client:
             fut.add_done_callback(partial(mark_complete_cpu, index, cuda))
 
         states["future"].result()
-        end = time.time()
 
         delays = []
         for index in range(len(timestamps)):
             delays.append(compute_delay(timestamps[index], cuda))
+
+        end = time.time()
 
         mean = sum(delays)/len(delays)
         stdv = stdev(delays)
@@ -119,12 +120,23 @@ def run(addr="localhost", port="29500"):
 
     client = Client(f"{addr}:{port}")
 
-    #for size in [100, 1000, 10000]:
-    for size in [100, 1000]:
+    for size in [100, 1000, 10000]:
+    #for size in [100, 1000]:
         print(f"======= size = {size} =====")
         f = open(f"logs/single_grpc_{size}.log", "w")
 
         tensor = torch.ones(size, size)
+        
+        # warmup
+        client.measure(
+            name="identity",
+            tensor=tensor,
+            cuda=False,
+            out_file=f,
+        )
+
+ 
+
         # identity
         client.measure(
             name="identity",
@@ -161,7 +173,7 @@ def run(addr="localhost", port="29500"):
         torch.cuda.current_stream(0).synchronize()
         # identity cuda
         client.measure(
-            name="identity",
+            name="identity_cuda",
             tensor=tensor,
             cuda=True,
             out_file=f,
@@ -169,7 +181,7 @@ def run(addr="localhost", port="29500"):
 
         # identity_script cuda
         client.measure(
-            name="identity_script",
+            name="identity_script_cuda",
             tensor=tensor,
             cuda=True,
             out_file=f,
@@ -177,7 +189,7 @@ def run(addr="localhost", port="29500"):
 
         # heavy cuda
         client.measure(
-            name="heavy",
+            name="heavy_cuda",
             tensor=tensor,
             cuda=True,
             out_file=f,
@@ -185,7 +197,7 @@ def run(addr="localhost", port="29500"):
 
         # heavy_script cuda
         client.measure(
-            name="heavy_script",
+            name="heavy_script_cuda",
             tensor=tensor,
             cuda=True,
             out_file=f,
