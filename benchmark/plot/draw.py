@@ -1,0 +1,373 @@
+# light vs heavy
+# 0: GCPP - grpc cpu Python PCIe
+# 1: GCSP - grpc cpu script PCIe
+# 2: GCPE - grpc cpu Python EFA
+# 3: GCSE - grpc cpu script EFA
+# 4: GGPP - grpc GPU Python PCIe
+# 5: 
+# 2: grpc cuda
+# 3: grpc cuda script
+# 4: ptrpc cpu
+# 5: ptrpc cpu script
+# 6: ptrpc cuda
+# 7: ptrpc cuda script
+# 8: ptrpc cuda NVLink
+# 9: ptrpc cuda NVLink
+# 10: ptrpc cuda IB
+# 11: ptrpc cuda script IB
+
+# [GP] gRPC vs PT-RPC 
+# [CG] CPU vs GPU
+# [PS] Python vs Script
+# [PENI] PCIe vs EFA vs NVLink vs IB
+
+# light vs heavy
+# single machine [PCIe vs NVLink] vs multi machine [EFA vs IB]
+
+# 0: GCP - gRPC + CPU + Python
+# 1: GCS - gRPC + CPU + Script
+# 2: GGP - gRPC + GPU + Python
+# 3: GGS - gRPC + GPU + Script
+# 4: PCP - PT-RPC + CPU + Python
+# 5: PCS - PT-RPC + CPU + Script
+# 6: PGP - PT-RPC + GPU + Python
+# 7: PGS - PT-RPC + GPU + Script
+
+# Figure:
+#  1k *  1k + light + single
+#  1k *  1k + light + multi
+# 10k * 10k + light + single
+# 10k * 10k + light + multi
+#  1k *  1k + heavy + single
+#  1k *  1k + heavy + multi
+# 10k * 10k + heavy + single
+# 10k * 10k + heavy + multi
+
+"""
+files = [
+    "logs/single_aws_2/single_pt_rpc_%d.log",
+    "logs/learnfair/single_pt_rpc_%d.log",
+    "logs/multi_aws_2/single_pt_rpc_%d.log",
+    "logs/single_aws_2/single_grpc_%d.log",
+    "logs/multi_aws_2/single_grpc_%d.log",
+]
+
+
+
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+colors = [
+    [0.3, 0.3, 0.3],
+    [239/256.0, 74/256.0, 40/256.0],
+    [0.6, 0.6, 0.6],
+]
+
+WIDTH = 0.3
+SHOW = False
+FONT = {'fontname':'Times New Roman', 'size':22}
+
+
+def plot_bar(name, ylim):
+    mean = np.asarray(data[name + "_mean"]) * 1e3
+    stdv = np.asarray(data[name + "_stdv"]) * 1e3
+    xs = np.arange(4)
+    #plt.figure(figsize=(6, 3))
+    handles = []
+    handles.append(plt.bar(
+        xs - WIDTH / 2.0, mean[0], yerr=stdv[0], color=colors[0], width=WIDTH, capsize=6
+    ))
+    handles.append(plt.bar(
+        xs + WIDTH / 2.0, mean[1], yerr=stdv[1], color=colors[1], width=WIDTH, capsize=6
+    ))
+
+    plt.xticks(xs, ["CP", "CS", "GP", "GS"], **FONT)
+    plt.yticks(**FONT)
+
+    plt.ylabel("Delay (ms)", **FONT)
+
+    plt.legend(
+        handles=handles,
+        loc="upper left",
+        labels=["gRPC", "PT"],
+        prop={'family':FONT['fontname'], 'size':FONT['size']},
+        ncol=2,
+        #bbox_to_anchor=(-0.015, 0.3, 0.5, 0.5)
+    )
+
+    plt.ylim(ylim)
+    plt.grid()
+
+    """
+    if SHOW:
+        plt.show()
+    else:
+        plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
+    """
+
+
+def plot_bar3(name, ylim, ax):
+    mean = np.asarray(data[name + "_mean"]) * 1e3
+    stdv = np.asarray(data[name + "_stdv"]) * 1e3
+    xs = np.arange(4)
+    #plt.figure(figsize=(6, 3))
+    handles = []
+    handles.append(plt.bar(
+        xs - WIDTH, mean[0], yerr=stdv[0], color=colors[0], width=WIDTH, capsize=6
+    ))
+    handles.append(plt.bar(
+        xs, mean[1], yerr=stdv[1], color=colors[1], width=WIDTH, capsize=6
+    ))
+    handles.append(plt.bar(
+        xs + WIDTH, mean[2], yerr=stdv[2], color=colors[2], width=WIDTH, capsize=6
+    ))
+
+    plt.xticks(xs, ["CP", "CS", "GP", "GS"], **FONT)
+    #plt.yticks(**FONT)
+
+    #plt.ylabel("Delay (ms)", **FONT)
+
+    plt.legend(
+        handles=[handles[2]],
+        loc="upper left",
+        labels=["PT IB"],
+        prop={'family':FONT['fontname'], 'size':FONT['size']},
+    )
+
+    #plt.ylim(ylim)
+    plt.setp(ax.get_yticklabels(), visible=False)
+    plt.grid()
+
+    """
+    if SHOW:
+        plt.show()
+    else:
+        plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
+    """
+
+
+data = {}
+
+data["small_light_single_mean"] = [
+    [
+        0.026708102226257323,   # GCP
+        0.03247213363647461,    # GCS
+        0.0599402910232544,     # GGP
+        0.030090252685546874,   # GGS
+    ], # grpc
+    [
+        0.00871570110321045,    # PCP
+        0.008874011039733887,   # PCS
+        0.004539344000816345,
+        0.0014466304063796998,
+    ], # pt rpc
+]
+
+data["small_light_single_stdv"] = [
+    [
+        0.004715544243583349,
+        0.010037730927172632,
+        0.02789967304355296,
+        0.006728921952568284,
+    ], #grpc
+    [
+        0.003113925632485608,
+        0.003417710351898507,
+        0.001146082866262916,
+        0.00019359466164992894
+    ], # pt rpc
+]
+
+data["small_light_multi_mean"] = [
+    [
+        0.06157054901123047,
+        0.05341341495513916,
+        0.11209506454467774,
+        0.03241867504119873
+    ],  #gRPC
+    [
+        0.005541062355041504,
+        0.005627202987670899,
+        0.04050200967788696,
+        0.03573512620925904,
+    ],  # PT RPC EFA
+    [
+        0,  # 0.03316252231597901,
+        0,  # 0.03235681056976318,
+        0.016081782436370852,
+        0.005295679926872253,
+    ],  # PT RPC IB
+]
+
+data["small_light_multi_stdv"] = [
+    [
+        0.019342111628262035,
+        0.016638521784208063,
+        0.036828845998343275,
+        0.008091798959968794,
+    ],
+    [
+        0.0016513753253001736,
+        0.0018334709060509695,
+        0.0190571934776313,
+        0.01899493488811709,
+    ],
+    [
+        0,  # 0.011050395280665903,
+        0,  # 0.013056317959832133,
+        0.00752183610847404,
+        0.0013382178476675506,
+    ]
+]
+
+
+name = "small_light"
+plt.figure(figsize=(10, 3))
+ax1 = plt.subplot(121)
+plot_bar(f"{name}_single", [0, 200])
+plt.text(2.7, 105, "intra", **FONT)
+
+ax2 = plt.subplot(122, sharey=ax1)
+plot_bar3(f"{name}_multi", [0, 200], ax2)
+plt.text(-0.5, 105, "cross", **FONT)
+
+plt.subplots_adjust(wspace=0)
+
+if SHOW:
+    plt.show()
+else:
+    plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
+
+
+
+
+########
+
+data["small_heavy_single_mean"] = [
+    [
+        0.20356476306915283,    # GCP
+        0.1753929615020752,     # GCS
+        0.1090344779968262,     # GGP
+        0.03455644454956055,    # GGS
+    ],  # gRPC
+    [
+        0.08173201084136963,
+        0.08039040565490722,
+        0.01840829429626465,
+        0.019564937973022462,
+    ], # PT RPC
+]
+
+data["small_heavy_single_stdv"] = [
+    [
+        0.030740158246616446,
+        0.026400505243055778,
+        0.012998388008905444,
+        0.0077261431947167475,
+    ],
+    [
+        0.008086306850952114,
+        0.008788756231678428,
+        0.0030035480556141986,
+        0.0015929879224909264,
+    ],
+]
+
+data["small_heavy_multi_mean"] = [
+    [
+        0.15635180473327637,
+        0.10107812881469727,
+        0.11622803573608398,
+        0.04124575309753418,
+    ],
+    [
+        0.08081684112548829,
+        0.07558789253234863,
+        0.04198958997726441,
+        0.0370933913230896,
+    ],
+    [
+        0, # 0.10263054370880127,
+        0, # 0.10391204357147217,
+        0.023845241641998288,
+        0.017658985614776614,
+    ], # PT IB
+]
+
+data["small_heavy_multi_stdv"] = [
+    [
+        0.011790788841651524,
+        0.022212092601855485,
+        0.01622634971258239,
+        0.008715935601335283,
+    ],
+    [
+        0.012027888882285216,
+        0.007028608622937932,
+        0.01915620890073913,
+        0.01899507439187126,
+    ],
+    [
+        0, # 0.010964331419899845,
+        0, # 0.01258920269134317,
+        0.004454980744851911,
+        0.0034703982699525286,
+    ], # PT IB
+]
+
+name = "small_heavy"
+plt.figure(figsize=(10, 3))
+ax1 = plt.subplot(121)
+plot_bar(f"{name}_single", [0, 350])
+plt.text(2.7, 105 * 3.5 / 2, "intra", **FONT)
+
+ax2 = plt.subplot(122, sharey=ax1)
+plot_bar3(f"{name}_multi", [0, 350], ax2)
+plt.text(-0.5, 105 * 3.5 / 2, "cross", **FONT)
+
+plt.subplots_adjust(wspace=0)
+
+if SHOW:
+    plt.show()
+else:
+    plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
