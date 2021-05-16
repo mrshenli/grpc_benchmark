@@ -340,9 +340,178 @@ else:
 
 
 
+#######
+
+
+def large_plot_bar(name, ylim):
+    mean = np.asarray(data[name + "_mean"])
+    stdv = np.asarray(data[name + "_stdv"])
+    xs = np.arange(4)
+    #plt.figure(figsize=(6, 3))
+    handles = []
+    handles.append(plt.bar(
+        xs - WIDTH / 2.0, mean[0], yerr=stdv[0], color=colors[0], width=WIDTH, capsize=6
+    ))
+    handles.append(plt.bar(
+        xs + WIDTH / 2.0, mean[1], yerr=stdv[1], color=colors[1], width=WIDTH, capsize=6
+    ))
+
+    plt.xticks(xs, ["CP", "CS", "GP", "GS"], **FONT)
+    plt.yticks(**FONT)
+
+    plt.ylabel("Delay (Second)", **FONT)
+
+    plt.legend(
+        handles=handles,
+        loc="upper left",
+        labels=["gRPC", "PT"],
+        prop={'family':FONT['fontname'], 'size':FONT['size']},
+        ncol=2,
+        #bbox_to_anchor=(-0.015, 0.3, 0.5, 0.5)
+    )
+
+    plt.ylim(ylim)
+    plt.grid()
+
+    """
+    if SHOW:
+        plt.show()
+    else:
+        plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
+    """
+
+
+def large_plot_bar3(name, ylim, ax):
+    mean = np.asarray(data[name + "_mean"])
+    stdv = np.asarray(data[name + "_stdv"])
+    xs = np.arange(4)
+    #plt.figure(figsize=(6, 3))
+    handles = []
+    handles.append(plt.bar(
+        xs - WIDTH, mean[0], yerr=stdv[0], color=colors[0], width=WIDTH, capsize=6
+    ))
+    handles.append(plt.bar(
+        xs, mean[1], yerr=stdv[1], color=colors[1], width=WIDTH, capsize=6
+    ))
+    handles.append(plt.bar(
+        xs + WIDTH, mean[2], yerr=stdv[2], color=colors[2], width=WIDTH, capsize=6
+    ))
+
+    plt.xticks(xs, ["CP", "CS", "GP", "GS"], **FONT)
+    #plt.yticks(**FONT)
+
+    #plt.ylabel("Delay (ms)", **FONT)
+
+    plt.legend(
+        handles=[handles[2]],
+        loc="upper left",
+        labels=["PT IB"],
+        prop={'family':FONT['fontname'], 'size':FONT['size']},
+    )
+
+    #plt.ylim(ylim)
+    plt.setp(ax.get_yticklabels(), visible=False)
+    plt.grid()
+
+    """
+    if SHOW:
+        plt.show()
+    else:
+        plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
+    """
 
 
 
+data["large_light_single_mean"] = [
+    [
+        22.20263538360596,  #GCP
+        24.788425254821778, #GCS
+        23.351867480468748, #GGP
+        11.011896142578125, #GGS
+    ],
+    [
+        1.2488246440887452,
+        1.3589040994644166,
+        0.1270621353149414,
+        0.10892848949432372,
+    ],
+]
+
+data["large_light_single_stdv"] = [
+    [
+        5.771916091747043,
+        5.364484586934269,
+        6.918799080128208,
+        1.9855945166246234
+    ],
+    [
+        0.5846850829686981,
+        0.6423697106855647,
+        0.05806563249041085,
+        0.054903939847492186,
+    ],
+]
+
+data["large_light_multi_mean"] = [
+    [
+        25.670038175582885,
+        26.178440260887147,
+        26.272700683593747,
+        13.444128710937502
+    ],
+    [
+        0.4566845417022705,
+        0.45766301155090333,
+        4.171952026367188,
+        3.683140618896484,
+    ],
+    [
+        0, #2.3643112659454344,
+        0, #2.3529667139053343,
+        0.3194052200317382,
+        0.24071654739379883,
+    ],  # IB
+]
+
+data["large_light_multi_stdv"] = [
+    [
+        7.146803514600233,
+        6.839167249104777,
+        7.496780532630554,
+        2.777911749383032,
+    ],
+    [
+        0.2184543757717796,
+        0.2227305837441535,
+        1.941776007191919,
+        1.9379969055436004,
+    ],
+    [
+        0, #1.0914719969608395,
+        0, #1.0934558992804269,
+        0.14819209802419867,
+        0.1078176178281113,
+    ],
+]
+
+name = "large_light"
+plt.figure(figsize=(10, 3))
+ax1 = plt.subplot(121)
+ax1.set_yscale('log')
+large_plot_bar(f"{name}_single", [0.05, 10000])
+plt.text(2.7, 80, "intra", **FONT)
+
+ax2 = plt.subplot(122, sharey=ax1)
+ax2.set_yscale('log')
+large_plot_bar3(f"{name}_multi", [0.05, 10000], ax2)
+plt.text(-0.5, 80, "cross", **FONT)
+
+plt.subplots_adjust(wspace=0)
+
+if SHOW:
+    plt.show()
+else:
+    plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
 
 
 
