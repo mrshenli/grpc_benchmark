@@ -228,11 +228,11 @@ name = "small_light"
 plt.figure(figsize=(10, 3))
 ax1 = plt.subplot(121)
 plot_bar(f"{name}_single", [0, 200])
-plt.text(2.7, 105, "intra", **FONT)
+plt.text(2.7, 120, "intra", **FONT)
 
 ax2 = plt.subplot(122, sharey=ax1)
 plot_bar3(f"{name}_multi", [0, 200], ax2)
-plt.text(-0.5, 105, "cross", **FONT)
+plt.text(-0.5, 120, "cross", **FONT)
 
 plt.subplots_adjust(wspace=0)
 
@@ -322,11 +322,11 @@ name = "small_heavy"
 plt.figure(figsize=(10, 3))
 ax1 = plt.subplot(121)
 plot_bar(f"{name}_single", [0, 350])
-plt.text(2.7, 105 * 3.5 / 2, "intra", **FONT)
+plt.text(2.7, 120 * 3.5 / 2, "intra", **FONT)
 
 ax2 = plt.subplot(122, sharey=ax1)
 plot_bar3(f"{name}_multi", [0, 350], ax2)
-plt.text(-0.5, 105 * 3.5 / 2, "cross", **FONT)
+plt.text(-0.5, 120 * 3.5 / 2, "cross", **FONT)
 
 plt.subplots_adjust(wspace=0)
 
@@ -514,8 +514,97 @@ else:
     plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
 
 
+data["large_heavy_single_mean"] = [
+    [
+        42.54107656478882,
+        38.679797768592834,
+        25.43493349609375,
+        14.1742890625,
+    ],
+    [
+        16.5695259809494,
+        14.258692002296447,
+        1.5742439208984376,
+        1.4494814453125,
+    ],
+]
 
 
+data["large_heavy_single_stdv"] = [
+    [
+        7.901092728867473,
+        9.498046712534931,
+        7.488048587705518,
+        3.6846603869313106,
+    ],
+    [
+        6.58542294507806,
+        5.0298745484719705,
+        0.31908617359309316,
+        0.3272961587238953
+    ],
+]
+
+data["large_heavy_multi_mean"] = [
+    [
+        38.442934083938596,
+        35.58412787914276,
+        27.784189160156252,
+        14.961043750000002,
+    ],
+    [
+        16.519581270217895,
+        14.204672360420227,
+        4.366681433105469,
+        3.8775099121093755,
+    ],
+    [
+        0, # 27.967683577537535,
+        0, # 25.08467490673065,
+        1.8139447509765625,
+        1.7794348754882816,
+    ],
+]
+
+data["large_heavy_multi_stdv"] = [
+    [
+        4.210697320599725,
+        8.901779052553074,
+        7.133498496783156,
+        3.0455976968829157,
+    ],
+    [
+        1.9035645472548066,
+        2.264535141637365,
+        1.9410518689572116,
+        1.9375170968683162,
+    ],
+    [  
+        0, # 4.343233661234864,
+        0, # 3.177754522705607,
+        0.29057995712800344,
+        0.25226875866321113,
+    ],
+]
+
+name = "large_heavy"
+plt.figure(figsize=(10, 3))
+ax1 = plt.subplot(121)
+ax1.set_yscale('log')
+large_plot_bar(f"{name}_single", [0.05, 10000])
+plt.text(2.7, 80, "intra", **FONT)
+
+ax2 = plt.subplot(122, sharey=ax1)
+ax2.set_yscale('log')
+large_plot_bar3(f"{name}_multi", [0.05, 10000], ax2)
+plt.text(-0.5, 80, "cross", **FONT)
+
+plt.subplots_adjust(wspace=0)
+
+if SHOW:
+    plt.show()
+else:
+    plt.savefig(f"../images/{name}.pdf", bbox_inches='tight')
 
 
 
