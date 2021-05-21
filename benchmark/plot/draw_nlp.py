@@ -40,16 +40,16 @@ FONT = {'fontname':'Times New Roman', 'size':22}
 
 data_fwd_mean = [
     [
-        962.80, 
-        959.73,
-        955.76,
-        946.43,
+        950.77, 
+        941.81,
+        933.35,
+        931.17,
     ], # local pipeline
     [
-        948.57,
-        953.27,
-        949.69,
-        948.76,
+        957.66,
+        958.80,
+        954.39,
+        959.46,
     ], # CPU RPC
     [
         1160.06,
@@ -67,7 +67,7 @@ data_fwd_stdv = [
         2.25,
     ], # local pipeline
     [
-        0.96,
+        2.32,
         2.00,
         2.13,
         2.52,
@@ -82,16 +82,16 @@ data_fwd_stdv = [
 
 data_comm_mean = [
     [
-        0,
-        0, 
-        0,
-        0,
+        0.02,
+        1.50, 
+        3.08,
+        9.70,
     ],
     [
-        580.67,
-        636.46,
-        949.69,
-        1279.16,
+        654.42,
+        706.89,
+        809.52,
+        1371.57,
     ],
     [
         36.34,
@@ -112,7 +112,7 @@ data_comm_stdv = [
         4.62,
         5.17,
         24.47,
-        17.80,
+        26.13,
     ],
     [
         1.40,
@@ -130,10 +130,10 @@ data_bwd_mean = [
         1716.74,
     ],
     [
-        4055.51,
-        4252.61,
-        4556.99,
-        5577.68,
+        2401.89,
+        2472.37,
+        2575.96,
+        3163.30,
     ],
     [
         1775.24,
@@ -151,10 +151,10 @@ data_bwd_stdv = [
         4.84,
     ],
     [
-        32.02,
-        84.56,
-        56.84,
-        150.76
+        5.25,
+        12.48,
+        13.18,
+        4.08,
     ],
     [
         5.02,
@@ -164,8 +164,8 @@ data_bwd_stdv = [
     ],
 ]
 
-def plot_nlp(x_name, y_lim):
-    plt.figure(figsize=(9.5, 4))
+def plot_nlp(x_name, f_name, y_lim):
+    plt.figure(figsize=(8, 4))
     xs = np.asarray(range(4))
 
 
@@ -196,7 +196,7 @@ def plot_nlp(x_name, y_lim):
     color_handles.append(plt.bar([4], [0], color=colors[0]))
     color_handles.append(plt.bar([4], [0], color=colors[1]))
     color_handles.append(plt.bar([4], [0], color=colors[2]))
-    color_names = ["Local", "CPU RPC", "CUDA RPC"]
+    color_names = ["SPMD", "CPU", "CUDA"]
 
     hatch_handles = []
     hatch_handles.append(plt.bar([4], [0], hatch="///", color="white"))
@@ -220,16 +220,19 @@ def plot_nlp(x_name, y_lim):
     plt.xticks(xs, ["1", "2", "4", "8"], **FONT)
     plt.yticks(**FONT)
 
-    plt.xlabel(x_name)
+    plt.xlabel(x_name, **FONT)
     plt.ylabel("Delay (Second)", **FONT)
 
     plt.ylim(y_lim)
     plt.xlim([-0.5, 3.5])
 
-    plt.show()
+    if SHOW:
+        plt.show()
+    else:
+        plt.savefig(f"../images/{f_name}.pdf", bbox_inches='tight')
 
 
-plot_nlp(x_name = "Number of GPUs", y_lim = [0, 16])
+plot_nlp(x_name = "Number of GPUs", f_name="nlp_single", y_lim = [0, 10])
 
 # figure 2
 # BS = 32 nGPU = 8
@@ -379,7 +382,7 @@ data_bwd_stdv = [
     ],
 ]
 
-plot_nlp(x_name="Number of Machines", y_lim=[0, 40])
+plot_nlp(x_name="Number of Machines", f_name="nlp_multi_32", y_lim=[0, 40])
 
 # figure 3
 # BS = 128 nGPU = 8
@@ -556,7 +559,7 @@ data_bwd_stdv = [
     ],
 ]
 
-plot_nlp(x_name="Number of Machines", y_lim=[0, 300])
+plot_nlp(x_name="Number of Machines", f_name="nlp_multi_128", y_lim=[0, 300])
 
 
 
