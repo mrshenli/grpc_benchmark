@@ -19,8 +19,8 @@ fetch_delay_mean = [
 		0.03620,
 		0.03764,
 		0.0391242159737481,
+		0.052636506822374134,
 		0.06071656545003255,
-		0.08869274192386203,
 		0.08869274192386203,
 	], # gRPC
 	[
@@ -52,8 +52,8 @@ fetch_delay_stdv = [
 		0.00323,
 		0.00586,
 		0.01159347876102909,
+		0.044711036383304974,
 		0.030639126816620704,
-		0.0792876920181466,
 		0.0792876920181466,
 	],
 	[
@@ -85,8 +85,8 @@ update_delay_mean = [
 		0.08573,
 		0.09151,
 		0.4195092447688071,
+		0.6269224011496212,
 		0.7451699396197715,
-		1.0245614507225123,
 		1.0245614507225123,
 	], # gRPC
 	[
@@ -118,8 +118,8 @@ update_delay_stdv = [
 		0.01617,
 		0.01811,
 		0.1738510783850508,
+		0.26840761319235884,
 		0.356174453618109,
-		0.4584052645960193,
 		0.4584052645960193,
 	],
 	[
@@ -146,15 +146,15 @@ update_delay_stdv = [
 
 
 def plot_rl(f_name, y_lim):
-    plt.figure(figsize=(7, 3))
-    xs = np.asarray(range(8))
+    plt.figure(figsize=(6, 3))
+    xs = np.asarray(range(4))
 
 
     for i in range(3):
-        fetch = np.asarray(fetch_delay_mean[i]) * 1e3
-        update = np.asarray(update_delay_mean[i]) * 1e3
-        fetch_stdv = np.asarray(fetch_delay_stdv[i]) * 1e3
-        update_stdv = np.asarray(update_delay_stdv[i]) * 1e3
+        fetch = np.asarray(fetch_delay_mean[i][:4]) * 1e3
+        update = np.asarray(update_delay_mean[i][:4]) * 1e3
+        fetch_stdv = np.asarray(fetch_delay_stdv[i][:4]) * 1e3
+        update_stdv = np.asarray(update_delay_stdv[i][:4]) * 1e3
 
 
         configs = {
@@ -174,16 +174,18 @@ def plot_rl(f_name, y_lim):
     color_handles.append(plt.bar([20], [0], color=colors[2]))
     color_names = ["gRPC", "CPU", "CUDA"]
 
+    """
     hatch_handles = []
     hatch_handles.append(plt.bar([20], [0], hatch="///", color="white"))
     hatch_handles.append(plt.bar([20], [0], hatch="\\\\\\", color="white"))
     hatch_names = ["Fetch", "Update"]
+    """
 
 
     plt.legend(
-        handles=hatch_handles + color_handles,
+        handles=color_handles,
         loc="upper left",
-        labels=hatch_names + color_names,
+        labels=color_names,
         prop={'family':FONT['fontname'], 'size':FONT['size'] - 3},
         ncol=3,
         labelspacing=0.2,
@@ -201,10 +203,87 @@ def plot_rl(f_name, y_lim):
     plt.ylabel("Delay (ms)", **FONT)
 
     plt.ylim(y_lim)
-    plt.xlim([-0.5, 7.5])
+    plt.xlim([-0.5, 3.5])
 
     #plt.show()
     plt.savefig(f"../images/{f_name}.pdf", bbox_inches='tight')
     
  
-plot_rl("mario", [0, 220])
+plot_rl("mario_single", [0, 220])
+
+
+
+def plot_rl(f_name, y_lim):
+    plt.figure(figsize=(6, 3))
+    xs = np.asarray(range(4))
+
+
+    for i in range(3):
+        fetch = np.asarray(fetch_delay_mean[i][4:]) * 1e3
+        update = np.asarray(update_delay_mean[i][4:]) * 1e3
+        fetch_stdv = np.asarray(fetch_delay_stdv[i][4:]) * 1e3
+        update_stdv = np.asarray(update_delay_stdv[i][4:]) * 1e3
+
+
+        configs = {
+            "width" : WIDTH,
+            "color" : colors[i],
+            "edgecolor" : "black",
+            "capsize" : 6,
+        }
+
+        plt.bar(xs + (i - 1) * WIDTH, fetch, yerr=fetch_stdv, hatch="///", **configs)
+        plt.bar(xs + (i - 1) * WIDTH, update, yerr=update_stdv, hatch="\\\\\\", bottom=fetch, **configs)
+
+
+
+    props = {'family':FONT['fontname'], 'size':FONT['size'] - 3}
+
+    for i in range(4, 8):
+	    delay = (fetch_delay_mean[2][i] + update_delay_mean[2][i]) * 1e3
+	    plt.text(0.22 + i - 4, 1000, f"{delay:.2f}", props, rotation=-90)
+	    plt.arrow(0.33 + i - 4, 700, 0, -300, head_width=0.05, head_length=30, fc='k', ec='k')
+
+
+    """
+    color_handles = []
+    color_handles.append(plt.bar([20], [0], color=colors[0]))
+    color_handles.append(plt.bar([20], [0], color=colors[1]))
+    color_handles.append(plt.bar([20], [0], color=colors[2]))
+    color_names = ["gRPC", "CPU", "CUDA"]
+    """
+
+    hatch_handles = []
+    hatch_handles.append(plt.bar([20], [0], hatch="///", color="white"))
+    hatch_handles.append(plt.bar([20], [0], hatch="\\\\\\", color="white"))
+    hatch_names = ["Fetch", "Update"]
+
+
+    plt.legend(
+        handles=hatch_handles,
+        loc="upper left",
+        labels=hatch_names,
+        prop=props,
+        ncol=2,
+        labelspacing=0.2,
+        borderpad=0.2,
+        handlelength=1,
+        #bbox_to_anchor=(-0.015, 0.3, 0.5, 0.5)
+    )
+
+
+
+    plt.xticks(xs, ["9", "11", "13", "15"], **FONT)
+    plt.yticks(**FONT)
+
+    plt.xlabel("Number of Actors", **FONT)
+    plt.ylabel("Delay (ms)", **FONT)
+
+    plt.ylim(y_lim)
+    plt.xlim([-0.5, 3.5])
+
+    #plt.show()
+    plt.savefig(f"../images/{f_name}.pdf", bbox_inches='tight')
+    
+ 
+plot_rl("mario_multi", [0, 2200])
